@@ -71,7 +71,7 @@ float LinuxParser::MemoryUtilization() {
 
   std::ifstream stream(kProcDirectory + kMeminfoFilename);
   if (stream.is_open()){
-    while(std::getline(stream, line)){
+    while(std::getline(stream, line) && (!total_memory || !available_memory)){
       std::istringstream linestream(line);
       linestream >> key >> value;
       if (key=="MemTotal:"){
@@ -81,12 +81,11 @@ float LinuxParser::MemoryUtilization() {
         available_memory=std::stod(value);
         }
       if(total_memory && available_memory){
-        return 1-(available_memory / total_memory);
+        break;
       }
     }
   }
-  else{return 0;} // Could not open the stream
-
+  return 1-(available_memory / total_memory);
 }
 
 long int LinuxParser::UpTime() {
@@ -191,11 +190,11 @@ int LinuxParser::TotalProcesses() {
       std::istringstream linestream(line);
       linestream >> key >> value;
       if (key=="processes"){
-        return std::stoi(value);
+        break;
       }
     }
   }
-  else{return 0;} // Could not open the stream
+  return std::stoi(value);
 }
 
 
@@ -207,11 +206,11 @@ int LinuxParser::RunningProcesses() {
       std::istringstream linestream(line);
       linestream >> key >> value;
       if (key=="procs_running"){
-        return std::stoi(value);
+        break;
       }
     }
   }
-  else{return 0;} // Could not opnnnnnN TOen the stream
+  return std::stoi(value);
 }
 
 string LinuxParser::Command(int pid) {
@@ -224,6 +223,7 @@ string LinuxParser::Command(int pid) {
     linestream >> command;
     return command;
   }
+  else{return "";}
 }
 
 string LinuxParser::Ram(int pid) {
@@ -234,11 +234,11 @@ string LinuxParser::Ram(int pid) {
       std::istringstream linestream(line);
       linestream >> key >> value;
       if(key == "VmData:"){
-        return value;
+        break;
       }
     }
   }
-  return "0";
+  return value;
 }
 
 string LinuxParser::Uid(string pid) {
